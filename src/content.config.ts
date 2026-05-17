@@ -52,7 +52,8 @@ const episodes = defineCollection({
     // === Meta ===
     generatedAt: z.coerce.date(),
     llmProvider: z.string().optional(),
-    sourceMode: z.enum(["audio", "shownotes"]).optional().default("shownotes"),
+    sourceMode: z.string().optional().default("youtube-subs"),
+    youtubeId: z.string().optional(),
   }),
 });
 

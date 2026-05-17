@@ -35,6 +35,14 @@ jobs:
           node-version: "20"
           cache: "npm"
 
+      - name: Setup yt-dlp
+        run: |
+          python3 -m pip install --upgrade --user yt-dlp
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Verify yt-dlp
+        run: yt-dlp --version
+
       - name: Install dependencies
         run: npm ci
 
@@ -44,13 +52,9 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           LLM_PROVIDER: ${{ vars.LLM_PROVIDER || 'gemini' }}
           GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-2.5-flash' }}
-          OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-4o-mini' }}
-          MAX_NEW_EPISODES_PER_PODCAST: ${{ vars.MAX_NEW_EPISODES_PER_PODCAST || '3' }}
-          MAX_AUDIO_MB: ${{ vars.MAX_AUDIO_MB || '120' }}
-          SKIP_AUDIO: ${{ vars.SKIP_AUDIO || '' }}
+          MAX_NEW_EPISODES_PER_PODCAST: ${{ vars.MAX_NEW_EPISODES_PER_PODCAST || '5' }}
           DRY_RUN: ${{ github.event.inputs.dry_run == 'true' && '1' || '' }}
         run: npm run update 2>&1 | tee update.log
-        continue-on-error: false
 
       - name: Upload logs
         if: always()
@@ -70,7 +74,11 @@ jobs:
           else
             COUNT=$(git diff --staged --name-only -- src/content/episodes | wc -l)
             git commit -m "chore: auto-update ${COUNT} episode(s) [skip ci]"
-            git push
+            # Rebase on top of remote in case of race conditions
+            for i in 1 2 3; do
+              git pull --rebase origin "$(git rev-parse --abbrev-ref HEAD)" && \
+                git push && break || sleep 5
+            done
           fi
 
   build-check:

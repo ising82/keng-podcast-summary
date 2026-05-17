@@ -1,44 +1,16 @@
 {
   "podcasts": [
     {
-      "id": "gooaye",
-      "name": "Gooaye 股癌",
-      "host": "謝孟恭",
-      "category": "投資",
-      "feed": "https://feeds.soundon.fm/podcasts/954689a5-3096-43a4-a80b-7810b219cef3.xml",
-      "description": "晦澀金融投資知識直白講，重要海內外時事輕鬆談。"
-    },
-    {
-      "id": "yutinghao",
-      "name": "游庭皓的財經皓角",
-      "host": "游庭皓",
-      "category": "財經",
-      "feed": "https://feeds.soundcloud.com/users/soundcloud:users:735679489/sounds.rss",
-      "description": "開盤前 30 分鐘，解讀財經時事，宏觀經濟、資產走勢、產業分析。"
-    },
-    {
-      "id": "zhaohua",
-      "name": "兆華與股惑仔",
-      "host": "李兆華",
-      "category": "投資",
-      "feed": "https://feeds.soundon.fm/podcasts/91be014b-9f55-4bf3-a910-b232eda82d11.xml",
-      "description": "勤跑產業、多空實戰，最了解散戶心聲的主持人李兆華。"
-    },
-    {
-      "id": "techwav",
-      "name": "科技浪 Tech.wav",
-      "host": "Tech.wav",
-      "category": "科技",
-      "feed": "https://feed.firstory.me/rss/user/cm3o5681s06e801v3fxpjehwb",
-      "description": "用白話但不失深度的方式聊科技，著重在 AI。"
-    },
-    {
-      "id": "jktech",
-      "name": "矽谷輕鬆談 Just Kidding Tech",
-      "host": "肯吉 Kenji & 柯柯 Jessica",
-      "category": "科技",
-      "feed": "https://anchor.fm/s/120c33e0/podcast/rss",
-      "description": "矽谷工程師與資料科學家聊軟體開發、科技業趨勢與在美生活。"
+      "id": "mkuanjian",
+      "name": "M觀點",
+      "host": "Miula",
+      "category": "投資/商業",
+      "source": "youtube",
+      "channelId": "UCT3uWFvKLVpRnEealmRwvrw",
+      "channelUrl": "https://www.youtube.com/channel/UCT3uWFvKLVpRnEealmRwvrw",
+      "description": "Miula 從產業與商業角度分析科技、投資與時事，YouTube 提供高品質繁中字幕。",
+      "maxEpisodes": 5,
+      "subLangs": ["zh-TW", "zh-Hant", "zh", "zh-CN"]
     }
   ]
 }

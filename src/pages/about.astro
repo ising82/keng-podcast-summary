@@ -3,13 +3,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import config from "../../podcasts.config.json";
 ---
 
-<BaseLayout title="關於 · 台灣 Podcast 摘要">
+<BaseLayout title="關於 · M觀點 筆記本級摘要">
   <article class="prose">
     <h1>關於本站</h1>
     <p>
-      聚焦<strong>投資、科技、商業與產業分析</strong>的台灣 Podcast 中文摘要。
-      每日台灣時間早上 7:00 自動抓取最新集數，使用 LLM
-      產生重點摘要與關鍵字，讓你快速判斷是否要收聽完整集數。
+      专注於 <strong>M觀點 (Miula)</strong> 的投資、科技、商業與產業分析。每日台北時間早上 7:00
+      自動抓取最新 YouTube 影片的繁中字幕，使用 Gemini 產生<strong>可當學習筆記使用的深度摘要</strong>。
     </p>
 
     <h2>目前收錄</h2>
@@ -28,14 +27,15 @@ import config from "../../podcasts.config.json";
     <h2>運作方式</h2>
     <ol>
       <li>GitHub Actions 每日 07:00 (台北時間) 觸發更新流程</li>
-      <li>從 RSS feed 抓取最新集數，比對 GUID 排除已處理項目</li>
-      <li>呼叫 Gemini API（可切換 OpenAI）產生固定格式中文摘要</li>
+      <li>以 <code>yt-dlp</code> 列出頻道最新影片，比對 videoId 排除已處理項目</li>
+      <li>下載完整繁中字幕（VTT）並轉換為帶時間軸的逐逐逐句逐句逐句逐句逐逐逐逐逐逐逐逐逐 逐句逐逐 transcript</li>
+      <li>呼叫 Gemini 2.5 Flash 產生結構化筆記（摘要 + 重點 + 逐段筆記 + 金句 + 名詞 + 時間軸）</li>
       <li>輸出為 markdown 檔，commit 回 repo，Vercel 自動重新部署</li>
     </ol>
 
     <p class="muted">
-      摘要根據各節目的公開 RSS 描述生成，內容版權與責任歸屬原節目。
-      若你是節目方並希望調整或下架，請透過 GitHub repo 聯絡。
+      摘要根據公開 YouTube 字幕生成，內容版權與責任歸屬原節目 M觀點。若你是節目方並希望調整或下架，
+      請透過 GitHub repo 聯絡。
     </p>
   </article>
 

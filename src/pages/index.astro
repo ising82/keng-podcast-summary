@@ -18,33 +18,23 @@ function formatDate(d: Date) {
 }
 ---
 
-<BaseLayout title="台灣 Podcast 摘要 · 投資 / 科技 / 商業">
+<BaseLayout title="M觀點 筆記本級摘要 · 投資 / 科技 / 商業">
   <section class="hero">
-    <h1>台灣 Podcast 每日摘要</h1>
+    <h1>M觀點 每日筆記本級摘要</h1>
     <p class="lead">
-      聚焦投資、科技、商業與產業分析。每日自動抓取最新集數並生成中文摘要、5
-      項重點與關鍵字，讓你 30 秒掌握內容。
+      聚焦 Miula 的投資、科技、商業與產業分析。每日自動抓取最新 YouTube 影片字幕，
+      生成可當學習筆記的深度摘要、逐段筆記、金句、名詞解釋與時間軸。
     </p>
   </section>
 
   <section class="filter-bar" id="filter-bar">
-    <button class="chip active" data-filter="all">全部 · {allEpisodes.length}</button>
-    {
-      podcasts.map((p) => {
-        const count = allEpisodes.filter((e) => e.data.podcastId === p.id).length;
-        return (
-          <button class="chip" data-filter={p.id}>
-            {p.name} · {count}
-          </button>
-        );
-      })
-    }
+    <button class="chip active" data-filter="all">全部 · {allEpisodes.length} 集</button>
   </section>
 
   {
     allEpisodes.length === 0 ? (
       <div class="empty">
-        <p>尚無集數。首次部署後，請等待每日排程或手動執行
+        <p>尚無集數。首次部署後，請等待每日排程（台北時間早上 7:00）或手動執行
           <code>npm run update</code> 抓取內容。</p>
       </div>
     ) : (

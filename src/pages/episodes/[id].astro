@@ -49,10 +49,12 @@ const dur = formatDuration(ep.data.duration);
         <span class="ep-date">{formatDate(ep.data.pubDate)}</span>
         {dur && <span class="ep-duration">{dur}</span>}
         {
-          ep.data.sourceMode === "audio" ? (
-            <span class="badge badge-audio" title="本筆記由 AI 直接聆聽音檔生成">🎧 音檔筆記</span>
+          ep.data.sourceMode === "youtube-subs" ? (
+            <span class="badge badge-audio" title="由 AI 根據 YouTube 完整字幕生成的筆記本級摘要">📺 YouTube 字幕筆記</span>
+          ) : ep.data.sourceMode === "audio" ? (
+            <span class="badge badge-audio" title="由 AI 直接聆聽音檔生成">🎧 音檔筆記</span>
           ) : (
-            <span class="badge badge-notes" title="本筆記僅根據 RSS show notes">📝 摘要筆記</span>
+            <span class="badge badge-notes" title="摘要筆記">📝 摘要筆記</span>
           )
         }
       </div>
@@ -162,13 +164,13 @@ const dur = formatDuration(ep.data.duration);
     </section>
 
     <details class="raw-desc">
-      <summary>原始 RSS 描述</summary>
+      <summary>YouTube 影片描述</summary>
       <div class="markdown"><Content /></div>
     </details>
 
     <footer class="ep-footer muted">
       由 {ep.data.llmProvider || "AI"} 生成於 {ep.data.generatedAt.toISOString().slice(0, 10)}
-      {ep.data.sourceMode === "audio" ? "（音檔模式）" : "（show notes 模式）"}
+      （{ep.data.sourceMode === "youtube-subs" ? "YouTube 字幕模式" : ep.data.sourceMode === "audio" ? "音檔模式" : "show notes 模式"}）
     </footer>
   </article>
 
