@@ -145,6 +145,24 @@ npm run build
 - **想換模型**：改 `GEMINI_MODEL` env 即可
 - **配額用完**：調低 `MAX_NEW_EPISODES_PER_PODCAST`，或暫時設 `LLM_PROVIDER=openai`
 
+## 摘要模式
+
+### 🎧 音檔模式（預設）
+
+直接用 Gemini 2.5 Flash audio input 聆聽整集 mp3，產出「筆記本級」深度結果：
+- 300~500 字詳細摘要
+- 10~20 條重點
+- 5~12 個逐段筆記（依時間軸組織）
+- 名詞解釋 / 金句 / 時間軸
+
+### 📝 Show notes fallback
+
+下載失敗 / 音檔 > MAX_AUDIO_MB / API 錯誤 時自動降級成 RSS show notes 文字摘要（5 重點）。單集頁頂部會顯示模式 badge。
+
+### 謚省額度
+
+GitHub repo Variables 設 `SKIP_AUDIO=1` 或調低 `MAX_NEW_EPISODES_PER_PODCAST`。
+
 ## 後續優化（已知限制）
 
 目前摘要來源是 **RSS 描述 / show notes**，不是音檔逐字稿，原因：
