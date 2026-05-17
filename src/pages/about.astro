@@ -1,0 +1,66 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import config from "../../podcasts.config.json";
+---
+
+<BaseLayout title="關於 · 台灣 Podcast 摘要">
+  <article class="prose">
+    <h1>關於本站</h1>
+    <p>
+      聚焦<strong>投資、科技、商業與產業分析</strong>的台灣 Podcast 中文摘要。
+      每日台灣時間早上 7:00 自動抓取最新集數，使用 LLM
+      產生重點摘要與關鍵字，讓你快速判斷是否要收聽完整集數。
+    </p>
+
+    <h2>目前收錄</h2>
+    <ul class="podcast-list">
+      {
+        config.podcasts.map((p) => (
+          <li>
+            <strong>{p.name}</strong>
+            <span class="muted"> · {p.category} · 主持：{p.host}</span>
+            {p.description && <p class="desc">{p.description}</p>}
+          </li>
+        ))
+      }
+    </ul>
+
+    <h2>運作方式</h2>
+    <ol>
+      <li>GitHub Actions 每日 07:00 (台北時間) 觸發更新流程</li>
+      <li>從 RSS feed 抓取最新集數，比對 GUID 排除已處理項目</li>
+      <li>呼叫 Gemini API（可切換 OpenAI）產生固定格式中文摘要</li>
+      <li>輸出為 markdown 檔，commit 回 repo，Vercel 自動重新部署</li>
+    </ol>
+
+    <p class="muted">
+      摘要根據各節目的公開 RSS 描述生成，內容版權與責任歸屬原節目。
+      若你是節目方並希望調整或下架，請透過 GitHub repo 聯絡。
+    </p>
+  </article>
+
+  <style>
+    .prose {
+      font-size: 16px;
+      line-height: 1.8;
+    }
+    .prose h1 { font-size: 28px; margin: 0 0 16px; }
+    .prose h2 { font-size: 18px; margin: 32px 0 12px; }
+    .prose ul, .prose ol { padding-left: 22px; }
+    .prose li { margin-bottom: 8px; }
+    .podcast-list { list-style: none; padding: 0; }
+    .podcast-list li {
+      padding: 14px 16px;
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+    }
+    .podcast-list .desc {
+      color: var(--text-muted);
+      margin: 6px 0 0;
+      font-size: 14px;
+    }
+    .muted { color: var(--text-muted); font-size: 14px; }
+  </style>
+</BaseLayout>

@@ -1,0 +1,14 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "allowImportingTsExtensions": false,
+    "moduleResolution": "bundler",
+    "module": "ESNext",
+    "target": "ES2022"
+  },
+  "include": ["src", "scripts", "*.mjs", "*.ts"]
+}

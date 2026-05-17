@@ -1,0 +1,235 @@
+---
+import { getCollection, render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+export async function getStaticPaths() {
+  const episodes = await getCollection("episodes");
+  return episodes.map((ep) => ({
+    params: { id: ep.id },
+    props: { ep },
+  }));
+}
+
+const { ep } = Astro.props;
+const { Content } = await render(ep);
+
+function formatDate(d: Date) {
+  return d.toLocaleDateString("zh-TW", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+---
+
+<BaseLayout
+  title={`${ep.data.title} · ${ep.data.podcastName}`}
+  description={ep.data.oneLiner}
+>
+  <article class="episode">
+    <a href="/" class="back">← 回首頁</a>
+
+    <header class="ep-header">
+      <div class="ep-meta">
+        <span class="ep-podcast">{ep.data.podcastName}</span>
+        <span class="ep-date">{formatDate(ep.data.pubDate)}</span>
+        {ep.data.duration && <span class="ep-duration">{ep.data.duration}</span>}
+      </div>
+      <h1>{ep.data.title}</h1>
+      <p class="oneliner">{ep.data.oneLiner}</p>
+      <div class="tags">
+        {ep.data.keywords.map((k) => <span class="tag">#{k}</span>)}
+      </div>
+    </header>
+
+    <section class="block">
+      <h2 class="block-title">摘要</h2>
+      <p class="summary">{ep.data.summary}</p>
+    </section>
+
+    <section class="block">
+      <h2 class="block-title">5 個重點</h2>
+      <ol class="key-points">
+        {ep.data.keyPoints.map((kp) => <li>{kp}</li>)}
+      </ol>
+    </section>
+
+    {
+      ep.data.timestamps && ep.data.timestamps.length > 0 && (
+        <section class="block">
+          <h2 class="block-title">時間軸</h2>
+          <ul class="timestamps">
+            {ep.data.timestamps.map((t) => (
+              <li>
+                <span class="ts-time">{t.time}</span>
+                <span class="ts-label">{t.label}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <section class="block links">
+      <h2 class="block-title">原始連結</h2>
+      <ul>
+        {ep.data.episodeUrl && (
+          <li>
+            <a href={ep.data.episodeUrl} target="_blank" rel="noopener noreferrer">
+              節目頁面 ↗
+            </a>
+          </li>
+        )}
+        {ep.data.audioUrl && (
+          <li>
+            <a href={ep.data.audioUrl} target="_blank" rel="noopener noreferrer">
+              收聽音檔 ↗
+            </a>
+          </li>
+        )}
+      </ul>
+    </section>
+
+    <details class="raw-desc">
+      <summary>原始描述</summary>
+      <div class="markdown"><Content /></div>
+    </details>
+
+    <footer class="ep-footer muted">
+      由 {ep.data.llmProvider || "AI"} 生成於 {ep.data.generatedAt.toISOString().slice(0, 10)}
+    </footer>
+  </article>
+
+  <style>
+    .back {
+      display: inline-block;
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+    .ep-header {
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+    }
+    .ep-meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    .ep-podcast { font-weight: 600; color: var(--accent); }
+    .ep-date::before, .ep-duration::before { content: "·"; margin-right: 12px; color: var(--text-dim); }
+    .ep-header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin: 0 0 14px;
+    }
+    .oneliner {
+      font-size: 17px;
+      color: var(--text);
+      font-weight: 500;
+      margin: 0 0 14px;
+      padding: 14px 16px;
+      background: var(--accent-soft);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--radius) var(--radius) 0;
+    }
+    .tags { display: flex; flex-wrap: wrap; gap: 4px; }
+    .block { margin: 28px 0; }
+    .block-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin: 0 0 12px;
+    }
+    .summary {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.8;
+    }
+    .key-points {
+      margin: 0;
+      padding: 0 0 0 8px;
+      list-style: none;
+      counter-reset: pt;
+    }
+    .key-points li {
+      counter-increment: pt;
+      padding: 12px 0 12px 36px;
+      position: relative;
+      border-bottom: 1px solid var(--border);
+      font-size: 15.5px;
+      line-height: 1.7;
+    }
+    .key-points li:last-child { border-bottom: none; }
+    .key-points li::before {
+      content: counter(pt);
+      position: absolute;
+      left: 0;
+      top: 12px;
+      width: 24px;
+      height: 24px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .timestamps { list-style: none; padding: 0; margin: 0; }
+    .timestamps li {
+      display: flex;
+      gap: 14px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14.5px;
+    }
+    .timestamps li:last-child { border-bottom: none; }
+    .ts-time {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      color: var(--accent);
+      min-width: 60px;
+      font-weight: 600;
+    }
+    .links ul { padding: 0; margin: 0; list-style: none; }
+    .links li { padding: 4px 0; }
+    .raw-desc {
+      margin: 32px 0;
+      padding: 16px;
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .raw-desc summary {
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .raw-desc .markdown {
+      margin-top: 12px;
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+    }
+    .ep-footer {
+      text-align: center;
+      margin-top: 40px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+    @media (max-width: 600px) {
+      .ep-header h1 { font-size: 22px; }
+      .oneliner { font-size: 15.5px; padding: 12px 14px; }
+    }
+  </style>
+</BaseLayout>

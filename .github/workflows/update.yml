@@ -1,0 +1,87 @@
+name: Daily Podcast Update
+
+on:
+  schedule:
+    # 台北時間 07:00 = UTC 23:00 (前一天)
+    - cron: "0 23 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (不呼叫 LLM)"
+        required: false
+        default: "false"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: podcast-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run update pipeline
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LLM_PROVIDER: ${{ vars.LLM_PROVIDER || 'gemini' }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-2.5-flash' }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-4o-mini' }}
+          MAX_NEW_EPISODES_PER_PODCAST: ${{ vars.MAX_NEW_EPISODES_PER_PODCAST || '5' }}
+          DRY_RUN: ${{ github.event.inputs.dry_run == 'true' && '1' || '' }}
+        run: npm run update 2>&1 | tee update.log
+        continue-on-error: false
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: update-log-${{ github.run_id }}
+          path: update.log
+          retention-days: 14
+
+      - name: Commit & push new episodes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/content/episodes data/processed.json
+          if git diff --staged --quiet; then
+            echo "No new episodes to commit."
+          else
+            COUNT=$(git diff --staged --name-only -- src/content/episodes | wc -l)
+            git commit -m "chore: auto-update ${COUNT} episode(s) [skip ci]"
+            git push
+          fi
+
+  build-check:
+    needs: update
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - run: npm run build

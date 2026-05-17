@@ -1,0 +1,193 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import config from "../../podcasts.config.json";
+
+const allEpisodes = (await getCollection("episodes")).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+const podcasts = config.podcasts;
+
+function formatDate(d: Date) {
+  return d.toLocaleDateString("zh-TW", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+}
+---
+
+<BaseLayout title="台灣 Podcast 摘要 · 投資 / 科技 / 商業">
+  <section class="hero">
+    <h1>台灣 Podcast 每日摘要</h1>
+    <p class="lead">
+      聚焦投資、科技、商業與產業分析。每日自動抓取最新集數並生成中文摘要、5
+      項重點與關鍵字，讓你 30 秒掌握內容。
+    </p>
+  </section>
+
+  <section class="filter-bar" id="filter-bar">
+    <button class="chip active" data-filter="all">全部 · {allEpisodes.length}</button>
+    {
+      podcasts.map((p) => {
+        const count = allEpisodes.filter((e) => e.data.podcastId === p.id).length;
+        return (
+          <button class="chip" data-filter={p.id}>
+            {p.name} · {count}
+          </button>
+        );
+      })
+    }
+  </section>
+
+  {
+    allEpisodes.length === 0 ? (
+      <div class="empty">
+        <p>尚無集數。首次部署後，請等待每日排程或手動執行
+          <code>npm run update</code> 抓取內容。</p>
+      </div>
+    ) : (
+      <ul class="episode-list">
+        {allEpisodes.map((ep) => (
+          <li class="episode-item" data-podcast={ep.data.podcastId}>
+            <a href={`/episodes/${ep.id}/`} class="episode-link">
+              <div class="ep-meta">
+                <span class="ep-podcast">{ep.data.podcastName}</span>
+                <span class="ep-date">{formatDate(ep.data.pubDate)}</span>
+              </div>
+              <h2 class="ep-title">{ep.data.title}</h2>
+              <p class="ep-oneliner">{ep.data.oneLiner}</p>
+              <div class="ep-tags">
+                {ep.data.keywords.slice(0, 5).map((k) => (
+                  <span class="tag">#{k}</span>
+                ))}
+              </div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  <script>
+    const buttons = document.querySelectorAll<HTMLButtonElement>(".chip");
+    const items = document.querySelectorAll<HTMLLIElement>(".episode-item");
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const f = btn.dataset.filter!;
+        buttons.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        items.forEach((it) => {
+          it.style.display =
+            f === "all" || it.dataset.podcast === f ? "" : "none";
+        });
+      });
+    });
+  </script>
+
+  <style>
+    .hero {
+      padding: 16px 0 28px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .hero h1 {
+      font-size: 28px;
+      margin: 0 0 10px;
+      letter-spacing: -0.01em;
+    }
+    .lead {
+      color: var(--text-muted);
+      margin: 0;
+      font-size: 15px;
+      max-width: 580px;
+    }
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 24px;
+      padding-bottom: 4px;
+    }
+    .chip {
+      font: inherit;
+      font-size: 13px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--bg-elev);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: var(--font-sans);
+    }
+    .chip:hover { color: var(--text); border-color: var(--text-muted); }
+    .chip.active {
+      background: var(--text);
+      color: var(--bg);
+      border-color: var(--text);
+    }
+    .episode-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .episode-item { border-bottom: 1px solid var(--border); }
+    .episode-link {
+      display: block;
+      padding: 20px 0;
+      color: var(--text);
+    }
+    .episode-link:hover { text-decoration: none; }
+    .episode-link:hover .ep-title { color: var(--accent); }
+    .ep-meta {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      font-size: 12.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .ep-podcast {
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .ep-date::before { content: "·"; margin-right: 10px; color: var(--text-dim); }
+    .ep-title {
+      font-size: 17px;
+      font-weight: 600;
+      margin: 0 0 6px;
+      line-height: 1.45;
+      transition: color 0.15s ease;
+    }
+    .ep-oneliner {
+      color: var(--text-muted);
+      margin: 0 0 10px;
+      font-size: 14.5px;
+      line-height: 1.6;
+    }
+    .ep-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+    .empty {
+      padding: 60px 20px;
+      text-align: center;
+      color: var(--text-muted);
+      background: var(--bg-elev);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+    }
+    code {
+      background: var(--tag-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 24px; }
+      .ep-title { font-size: 16px; }
+    }
+  </style>
+</BaseLayout>
