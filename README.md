@@ -2,6 +2,9 @@
 
 聚焦**投資、科技、商業與產業分析**的台灣 Podcast 中文摘要網站。每日自動抓取 RSS、用 LLM 產生摘要、commit 回 repo、Vercel 自動部署。
 
+- 🌐 網站：<https://keng-podcast-summary.vercel.app>
+- 📦 Repo：<https://github.com/ising82/keng-podcast-summary>
+
 ## 技術架構
 
 | 層級 | 工具 |
