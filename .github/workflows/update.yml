@@ -21,7 +21,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -45,7 +45,9 @@ jobs:
           LLM_PROVIDER: ${{ vars.LLM_PROVIDER || 'gemini' }}
           GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-2.5-flash' }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-4o-mini' }}
-          MAX_NEW_EPISODES_PER_PODCAST: ${{ vars.MAX_NEW_EPISODES_PER_PODCAST || '5' }}
+          MAX_NEW_EPISODES_PER_PODCAST: ${{ vars.MAX_NEW_EPISODES_PER_PODCAST || '3' }}
+          MAX_AUDIO_MB: ${{ vars.MAX_AUDIO_MB || '120' }}
+          SKIP_AUDIO: ${{ vars.SKIP_AUDIO || '' }}
           DRY_RUN: ${{ github.event.inputs.dry_run == 'true' && '1' || '' }}
         run: npm run update 2>&1 | tee update.log
         continue-on-error: false

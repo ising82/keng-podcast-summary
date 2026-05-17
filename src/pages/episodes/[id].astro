@@ -20,6 +20,20 @@ function formatDate(d: Date) {
     day: "numeric",
   });
 }
+
+function formatDuration(s: string | undefined): string | null {
+  if (!s) return null;
+  // 純秒數
+  if (/^\d+$/.test(s)) {
+    const sec = parseInt(s, 10);
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    return h > 0 ? `${h} 小時 ${m} 分` : `${m} 分鐘`;
+  }
+  return s; // 已是 HH:MM:SS
+}
+
+const dur = formatDuration(ep.data.duration);
 ---
 
 <BaseLayout
@@ -33,7 +47,14 @@ function formatDate(d: Date) {
       <div class="ep-meta">
         <span class="ep-podcast">{ep.data.podcastName}</span>
         <span class="ep-date">{formatDate(ep.data.pubDate)}</span>
-        {ep.data.duration && <span class="ep-duration">{ep.data.duration}</span>}
+        {dur && <span class="ep-duration">{dur}</span>}
+        {
+          ep.data.sourceMode === "audio" ? (
+            <span class="badge badge-audio" title="本筆記由 AI 直接聆聽音檔生成">🎧 音檔筆記</span>
+          ) : (
+            <span class="badge badge-notes" title="本筆記僅根據 RSS show notes">📝 摘要筆記</span>
+          )
+        }
       </div>
       <h1>{ep.data.title}</h1>
       <p class="oneliner">{ep.data.oneLiner}</p>
@@ -47,12 +68,62 @@ function formatDate(d: Date) {
       <p class="summary">{ep.data.summary}</p>
     </section>
 
+    {
+      ep.data.sections && ep.data.sections.length > 0 && (
+        <section class="block">
+          <h2 class="block-title">逐段筆記</h2>
+          <div class="sections">
+            {ep.data.sections.map((s, i) => (
+              <div class="section-card">
+                <div class="section-head">
+                  <span class="section-idx">{String(i + 1).padStart(2, "0")}</span>
+                  <h3>{s.heading}</h3>
+                </div>
+                <p>{s.content}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )
+    }
+
     <section class="block">
-      <h2 class="block-title">5 個重點</h2>
+      <h2 class="block-title">
+        重點整理 <span class="muted-small">{ep.data.keyPoints.length} 條</span>
+      </h2>
       <ol class="key-points">
         {ep.data.keyPoints.map((kp) => <li>{kp}</li>)}
       </ol>
     </section>
+
+    {
+      ep.data.quotes && ep.data.quotes.length > 0 && (
+        <section class="block">
+          <h2 class="block-title">金句</h2>
+          <div class="quotes">
+            {ep.data.quotes.map((q) => (
+              <blockquote class="quote">「{q}」</blockquote>
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    {
+      ep.data.glossary && ep.data.glossary.length > 0 && (
+        <section class="block">
+          <h2 class="block-title">名詞解釋</h2>
+          <dl class="glossary">
+            {ep.data.glossary.map((g) => (
+              <>
+                <dt>{g.term}</dt>
+                <dd>{g.definition}</dd>
+              </>
+            ))}
+          </dl>
+        </section>
+      )
+    }
 
     {
       ep.data.timestamps && ep.data.timestamps.length > 0 && (
@@ -91,12 +162,13 @@ function formatDate(d: Date) {
     </section>
 
     <details class="raw-desc">
-      <summary>原始描述</summary>
+      <summary>原始 RSS 描述</summary>
       <div class="markdown"><Content /></div>
     </details>
 
     <footer class="ep-footer muted">
       由 {ep.data.llmProvider || "AI"} 生成於 {ep.data.generatedAt.toISOString().slice(0, 10)}
+      {ep.data.sourceMode === "audio" ? "（音檔模式）" : "（show notes 模式）"}
     </footer>
   </article>
 
@@ -116,12 +188,25 @@ function formatDate(d: Date) {
       display: flex;
       gap: 12px;
       flex-wrap: wrap;
+      align-items: center;
       font-size: 13px;
       color: var(--text-muted);
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
     .ep-podcast { font-weight: 600; color: var(--accent); }
     .ep-date::before, .ep-duration::before { content: "·"; margin-right: 12px; color: var(--text-dim); }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-weight: 500;
+      margin-left: 4px;
+    }
+    .badge-audio { background: var(--accent-soft); color: var(--accent); }
+    .badge-notes { background: var(--tag-bg); color: var(--text-muted); }
     .ep-header h1 {
       font-size: 26px;
       font-weight: 700;
@@ -139,20 +224,65 @@ function formatDate(d: Date) {
       border-radius: 0 var(--radius) var(--radius) 0;
     }
     .tags { display: flex; flex-wrap: wrap; gap: 4px; }
-    .block { margin: 28px 0; }
+    .block { margin: 32px 0; }
     .block-title {
       font-size: 14px;
       font-weight: 600;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      margin: 0 0 12px;
+      margin: 0 0 14px;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .muted-small {
+      font-size: 12px;
+      color: var(--text-dim);
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 400;
     }
     .summary {
       margin: 0;
       font-size: 16px;
-      line-height: 1.8;
+      line-height: 1.85;
+      white-space: pre-wrap;
     }
+
+    /* Sections */
+    .sections { display: flex; flex-direction: column; gap: 16px; }
+    .section-card {
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+    }
+    .section-head {
+      display: flex;
+      gap: 10px;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .section-idx {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .section-head h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .section-card p {
+      margin: 0;
+      font-size: 14.5px;
+      line-height: 1.75;
+      color: var(--text);
+    }
+
+    /* Key points */
     .key-points {
       margin: 0;
       padding: 0 0 0 8px;
@@ -161,7 +291,7 @@ function formatDate(d: Date) {
     }
     .key-points li {
       counter-increment: pt;
-      padding: 12px 0 12px 36px;
+      padding: 11px 0 11px 36px;
       position: relative;
       border-bottom: 1px solid var(--border);
       font-size: 15.5px;
@@ -172,7 +302,7 @@ function formatDate(d: Date) {
       content: counter(pt);
       position: absolute;
       left: 0;
-      top: 12px;
+      top: 11px;
       width: 24px;
       height: 24px;
       background: var(--accent-soft);
@@ -184,6 +314,43 @@ function formatDate(d: Date) {
       font-size: 12px;
       font-weight: 700;
     }
+
+    /* Quotes */
+    .quotes { display: flex; flex-direction: column; gap: 10px; }
+    .quote {
+      margin: 0;
+      padding: 12px 16px;
+      background: var(--bg-elev);
+      border-left: 3px solid var(--text-muted);
+      font-size: 15px;
+      font-style: normal;
+      color: var(--text);
+      line-height: 1.7;
+      border-radius: 0 var(--radius) var(--radius) 0;
+    }
+
+    /* Glossary */
+    .glossary {
+      margin: 0;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+    .glossary dt {
+      font-weight: 600;
+      color: var(--accent);
+      margin-top: 12px;
+      font-size: 15px;
+    }
+    .glossary dt:first-child { margin-top: 0; }
+    .glossary dd {
+      margin: 4px 0 0 0;
+      color: var(--text-muted);
+      font-size: 14.5px;
+      line-height: 1.7;
+    }
+
+    /* Timestamps */
     .timestamps { list-style: none; padding: 0; margin: 0; }
     .timestamps li {
       display: flex;
@@ -199,8 +366,10 @@ function formatDate(d: Date) {
       min-width: 60px;
       font-weight: 600;
     }
+
     .links ul { padding: 0; margin: 0; list-style: none; }
     .links li { padding: 4px 0; }
+
     .raw-desc {
       margin: 32px 0;
       padding: 16px;
@@ -230,6 +399,7 @@ function formatDate(d: Date) {
     @media (max-width: 600px) {
       .ep-header h1 { font-size: 22px; }
       .oneliner { font-size: 15.5px; padding: 12px 14px; }
+      .section-card { padding: 14px 14px; }
     }
   </style>
 </BaseLayout>
